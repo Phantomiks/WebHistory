@@ -1,0 +1,828 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <base target="_self">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>История России - Карточки для запоминания</title>
+    <meta name="description" content="Мобильное приложение для изучения истории России с помощью интерактивных карточек">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1e40af",
+                        secondary: "#dc2626",
+                        accent: "#059669",
+                        background: "#f8fafc",
+                        card: "#ffffff",
+                        text: "#1e293b"
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'serif': ['Roboto Slab', 'Georgia', 'serif']
+                    },
+                    spacing: {
+                        'safe-top': 'env(safe-area-inset-top)',
+                        'safe-bottom': 'env(safe-area-inset-bottom)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .card-flip {
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        
+        .card-flip.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        
+        .swipe-left {
+            animation: swipeLeft 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        
+        .swipe-right {
+            animation: swipeRight 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        
+        .swipe-left-in {
+            animation: swipeLeftIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        
+        .swipe-right-in {
+            animation: swipeRightIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+        
+        @keyframes swipeLeft {
+            0% { transform: translateX(0) rotateY(0deg); opacity: 1; }
+            100% { transform: translateX(-120%) rotateY(-45deg); opacity: 0; }
+        }
+        
+        @keyframes swipeRight {
+            0% { transform: translateX(0) rotateY(0deg); opacity: 1; }
+            100% { transform: translateX(120%) rotateY(45deg); opacity: 0; }
+        }
+        
+        @keyframes swipeLeftIn {
+            0% { transform: translateX(120%) rotateY(45deg); opacity: 0; }
+            100% { transform: translateX(0) rotateY(0deg); opacity: 1; }
+        }
+        
+        @keyframes swipeRightIn {
+            0% { transform: translateX(-120%) rotateY(-45deg); opacity: 0; }
+            100% { transform: translateX(0) rotateY(0deg); opacity: 1; }
+        }
+        
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .touch-action-none {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-background font-sans text-text pt-safe-top pb-safe-bottom">
+    <!-- Main Menu Screen -->
+    <div id="mainMenu" class="min-h-screen flex flex-col">
+        <header class="bg-primary text-white py-6 px-4 rounded-b-3xl shadow-lg">
+            <div class="container mx-auto">
+                <h1 class="text-3xl font-bold text-center font-serif">История России</h1>
+                <p class="text-center text-blue-100 mt-2">Интерактивные карточки для запоминания</p>
+            </div>
+        </header>
+
+        <main class="flex-1 container mx-auto px-4 py-8">
+            <div class="mb-10">
+                <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Выберите период</h2>
+                
+                <div class="grid grid-cols-1 gap-4">
+                    <button class="period-card bg-gradient-to-r from-blue-50 to-blue-100 border-l-4 border-primary p-5 rounded-xl shadow-md text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" data-period="kievan-rus">
+                        <div class="flex items-center">
+                            <div class="bg-primary text-white w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-crown text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Киевская Русь</h3>
+                                <p class="text-gray-600">862-1240 гг.</p>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-gray-700">Образование древнерусского государства, правление Рюриковичей</p>
+                    </button>
+                    
+                    <button class="period-card bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-secondary p-5 rounded-xl shadow-md text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" data-period="mongol-yoke">
+                        <div class="flex items-center">
+                            <div class="bg-secondary text-white w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-horse text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Монгольское иго</h3>
+                                <p class="text-gray-600">1240-1480 гг.</p>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-gray-700">Зависимость русских земель от Золотой Орды</p>
+                    </button>
+                    
+                    <button class="period-card bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-accent p-5 rounded-xl shadow-md text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" data-period="muscovy">
+                        <div class="flex items-center">
+                            <div class="bg-accent text-white w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-landmark text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Московское царство</h3>
+                                <p class="text-gray-600">1480-1721 гг.</p>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-gray-700">Объединение русских земель вокруг Москвы</p>
+                    </button>
+                    
+                    <button class="period-card bg-gradient-to-r from-purple-50 to-purple-100 border-l-4 border-purple-600 p-5 rounded-xl shadow-md text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" data-period="empire">
+                        <div class="flex items-center">
+                            <div class="bg-purple-600 text-white w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-empire text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Российская империя</h3>
+                                <p class="text-gray-600">1721-1917 гг.</p>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-gray-700">Правление Петра I, Екатерины II, развитие империи</p>
+                    </button>
+                    
+                    <button class="period-card bg-gradient-to-r from-yellow-50 to-yellow-100 border-l-4 border-yellow-600 p-5 rounded-xl shadow-md text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" data-period="soviet">
+                        <div class="flex items-center">
+                            <div class="bg-yellow-600 text-white w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-industry text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Советский период</h3>
+                                <p class="text-gray-600">1917-1991 гг.</p>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-gray-700">СССР, Великая Отечественная война, холодная война</p>
+                    </button>
+                    
+                    <button class="period-card bg-gradient-to-r from-gray-50 to-gray-100 border-l-4 border-gray-600 p-5 rounded-xl shadow-md text-left transition-all duration-300 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]" data-period="modern">
+                        <div class="flex items-center">
+                            <div class="bg-gray-600 text-white w-12 h-12 rounded-full flex items-center justify-center mr-4">
+                                <i class="fas fa-flag text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Современная Россия</h3>
+                                <p class="text-gray-600">1991-настоящее время</p>
+                            </div>
+                        </div>
+                        <p class="mt-3 text-gray-700">Распад СССР, становление Российской Федерации</p>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-12">
+                <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Статистика</h2>
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-primary">0</div>
+                            <div class="text-gray-600">Изучено карточек</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-accent">6</div>
+                            <div class="text-gray-600">Доступных периодов</div>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Общий прогресс</span>
+                            <span>0%</span>
+                        </div>
+                        <div class="h-3 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-white border-t border-gray-200 py-4 px-4">
+            <div class="container mx-auto text-center text-gray-600">
+                <p>Для изучения истории России. Нажмите на период для начала.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Flashcard Screen -->
+    <div id="flashcardScreen" class="min-h-screen flex flex-col hidden">
+        <header class="bg-primary text-white py-5 px-4">
+            <div class="container mx-auto flex items-center justify-between">
+                <button id="backToMenu" class="text-white text-2xl">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="text-center">
+                    <h2 id="periodTitle" class="text-xl font-bold">Киевская Русь</h2>
+                    <p id="cardCounter" class="text-blue-100 text-sm">Карточка 1 из 10</p>
+                </div>
+                <div class="w-8"></div> <!-- Spacer for balance -->
+            </div>
+            
+            <div class="container mx-auto mt-4">
+                <div class="flex justify-between text-sm text-blue-100 mb-1">
+                    <span>Прогресс</span>
+                    <span id="progressPercent">10%</span>
+                </div>
+                <div class="h-2 bg-blue-300 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-white rounded-full progress-bar" style="width: 10%"></div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 container mx-auto px-4 py-8 flex flex-col items-center justify-center">
+            <div class="w-full max-w-md">
+                <!-- Flashcard Container -->
+                <div id="flashcardContainer" class="relative w-full h-96 mb-8 touch-action-none">
+                    <div id="flashcard" class="card-flip w-full h-full absolute">
+                        <!-- Front of Card -->
+                        <div class="card-front bg-card rounded-2xl card-shadow p-6 flex flex-col items-center justify-center border-2 border-gray-100">
+                            <div class="text-center">
+                                <div class="text-sm text-gray-500 mb-2">Дата</div>
+                                <div id="cardDate" class="text-4xl font-bold text-primary mb-4 font-serif">862 год</div>
+                                <div class="text-gray-600 mb-6">Нажмите на карточку, чтобы перевернуть</div>
+                                <div class="text-gray-400 text-sm">
+                                    <i class="fas fa-hand-point-up mr-2"></i>Коснитесь для переворота
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Back of Card -->
+                        <div class="card-back bg-gradient-to-br from-blue-50 to-white rounded-2xl card-shadow p-6 flex flex-col items-center justify-center border-2 border-blue-100">
+                            <div class="text-center">
+                                <div class="text-sm text-gray-500 mb-2">Событие</div>
+                                <h3 id="cardEventTitle" class="text-2xl font-bold text-gray-800 mb-4">Призвание варягов</h3>
+                                <div id="cardDescription" class="text-gray-700 text-lg leading-relaxed">
+                                    Согласно "Повести временных лет", славянские и финно-угорские племена призвали варяжского князя Рюрика на княжение в Новгород. Это событие считается началом династии Рюриковичей и образования Древнерусского государства.
+                                </div>
+                                <div class="mt-6 text-gray-400 text-sm">
+                                    <i class="fas fa-redo mr-2"></i>Коснитесь еще раз, чтобы вернуться
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Management Buttons -->
+                <div class="flex flex-col items-center gap-6 mt-12">
+                    <div class="flex space-x-4">
+                        <button id="markAsLearned" class="bg-green-100 text-green-800 px-6 py-3 rounded-lg flex items-center transition-all duration-300 hover:bg-green-200 active:scale-95">
+                            <i class="fas fa-check mr-2"></i>Выучено
+                        </button>
+                        <button id="resetProgress" class="bg-gray-100 text-gray-800 px-6 py-3 rounded-lg flex items-center transition-all duration-300 hover:bg-gray-200 active:scale-95">
+                            <i class="fas fa-redo mr-2"></i>Сбросить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="statsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800">Статистика изучения</h3>
+                <button id="closeStats" class="text-gray-500 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="statsContent" class="space-y-6">
+                <!-- Stats will be populated by JavaScript -->
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <button id="resetAllProgress" class="w-full bg-gray-100 text-gray-800 py-3 rounded-lg font-medium transition-all duration-300 hover:bg-gray-200 active:scale-95">
+                    <i class="fas fa-trash-alt mr-2"></i>Сбросить всю статистику
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Define all data at the beginning
+        const historyPeriods = {
+            "kievan-rus": {
+                "id": "kievan-rus",
+                "title": "Киевская Русь",
+                "period": "862-1240 гг.",
+                "color": "primary",
+                "cards": [
+                    {
+                        "id": 1,
+                        "date": "862 год",
+                        "event": "Призвание варягов",
+                        "description": "Согласно Повести временных лет, славянские и финно-угорские племена призвали варяжского князя Рюрика на княжение в Новгород. Это событие считается началом династии Рюриковичей и образования Древнерусского государства.",
+                        "learned": false
+                    },
+                    {
+                        "id": 2,
+                        "date": "882 год",
+                        "event": "Образование Киевской Руси",
+                        "description": "Князь Олег захватил Киев и объявил его матерью городов русских. Перенос столицы из Новгорода в Киев. Начало объединения восточнославянских племен под властью Киева.",
+                        "learned": false
+                    },
+                    {
+                        "id": 3,
+                        "date": "988 год",
+                        "event": "Крещение Руси",
+                        "description": "Князь Владимир Святославич принял христианство по византийскому образцу и начал крещение жителей Киева. Это событие укрепило международное положение Руси и способствовало развитию культуры, письменности и государственности.",
+                        "learned": false
+                    },
+                    {
+                        "id": 4,
+                        "date": "1019-1054 гг.",
+                        "event": "Правление Ярослава Мудрого",
+                        "description": "Расцвет Киевской Руси. Составление Русской Правды - первого письменного свода законов. Развитие культуры, архитектуры (Софийский собор в Киеве) и образования. Укрепление международных связей через династические браки.",
+                        "learned": false
+                    },
+                    {
+                        "id": 5,
+                        "date": "1147 год",
+                        "event": "Первое упоминание Москвы",
+                        "description": "В Ипатьевской летописи впервые упоминается Москва в связи с приглашением суздальского князя Юрия Долгорукого новгород-северского князя Святослава Ольговича: Приди ко мне, брате, в Москов.",
+                        "learned": false
+                    },
+                    {
+                        "id": 6,
+                        "date": "1223 год",
+                        "event": "Битва на Калке",
+                        "description": "Первое столкновение русских князей с монголо-татарами. Объединенное войско русских князей и половцев потерпело поражение от войск Чингисхана. Это было предвестие монгольского нашествия.",
+                        "learned": false
+                    }
+                ]
+            },
+            "mongol-yoke": {
+                "id": "mongol-yoke",
+                "title": "Монгольское иго",
+                "period": "1240-1480 гг.",
+                "color": "secondary",
+                "cards": [
+                    {
+                        "id": 1,
+                        "date": "1237-1240 гг.",
+                        "event": "Монгольское нашествие на Русь",
+                        "description": "Войска хана Батыя разорили Рязань, Владимир, Киев и другие русские города. Начало монголо-татарского ига, которое продлилось более 200 лет.",
+                        "learned": false
+                    },
+                    {
+                        "id": 2,
+                        "date": "1240 год",
+                        "event": "Невская битва",
+                        "description": "Князь Александр Ярославич разбил шведское войско на реке Неве, за что получил прозвище Невский. Эта победа предотвратила потерю Русью выхода к Балтийскому морю.",
+                        "learned": false
+                    },
+                    {
+                        "id": 3,
+                        "date": "1242 год",
+                        "event": "Ледовое побоище",
+                        "description": "Александр Невский разгромил немецких рыцарей Ливонского ордена на Чудском озере. Эта победа остановила экспансию крестоносцев на русские земли.",
+                        "learned": false
+                    },
+                    {
+                        "id": 4,
+                        "date": "1380 год",
+                        "event": "Куликовская битва",
+                        "description": "Войско московского князя Дмитрия Донского разбило ордынское войско Мамая. Хотя иго не было свергнуто, эта победа показала возможность борьбы с Ордой и укрепила авторитет Москвы.",
+                        "learned": false
+                    }
+                ]
+            },
+            "muscovy": {
+                "id": "muscovy",
+                "title": "Московское царство",
+                "period": "1480-1721 гг.",
+                "color": "accent",
+                "cards": [
+                    {
+                        "id": 1,
+                        "date": "1480 год",
+                        "event": "Стояние на Угре",
+                        "description": "Войска Ивана III и хана Ахмата стояли на противоположных берегах реки Угры, не вступая в битву. Ордынцы отступили, что считается концом монголо-татарского ига.",
+                        "learned": false
+                    },
+                    {
+                        "id": 2,
+                        "date": "1547 год",
+                        "event": "Венчание Ивана IV на царство",
+                        "description": "Иван IV (Грозный) первым из русских правителей официально принял титул царя. Это укрепило авторитет Московского государства на международной арене.",
+                        "learned": false
+                    },
+                    {
+                        "id": 3,
+                        "date": "1550 год",
+                        "event": "Создание стрелецкого войска",
+                        "description": "Иван Грозный создал первое постоянное войско на Руси - стрельцов. Это было важным шагом в укреплении обороноспособности государства.",
+                        "learned": false
+                    }
+                ]
+            },
+            "empire": {
+                "id": "empire",
+                "title": "Российская империя",
+                "period": "1721-1917 гг.",
+                "color": "purple",
+                "cards": [
+                    {
+                        "id": 1,
+                        "date": "1721 год",
+                        "event": "Провозглашение Российской империи",
+                        "description": "После победы в Северной войне Петр I принял титул императора, а Россия стала империей. Начало нового этапа в истории страны.",
+                        "learned": false
+                    },
+                    {
+                        "id": 2,
+                        "date": "1812 год",
+                        "event": "Отечественная война",
+                        "description": "Вторжение армии Наполеона в Россию. Бородинское сражение, пожар Москвы и изгнание французской армии из России.",
+                        "learned": false
+                    }
+                ]
+            },
+            "soviet": {
+                "id": "soviet",
+                "title": "Советский период",
+                "period": "1917-1991 гг.",
+                "color": "yellow",
+                "cards": [
+                    {
+                        "id": 1,
+                        "date": "1917 год",
+                        "event": "Октябрьская революция",
+                        "description": "Большевики во главе с Лениным захватили власть в Петрограде. Начало советского периода в истории России.",
+                        "learned": false
+                    },
+                    {
+                        "id": 2,
+                        "date": "1941-1945 гг.",
+                        "event": "Великая Отечественная война",
+                        "description": "СССР вступил во Вторую мировую войну после нападения Германии. Решающий вклад в победу над нацизмом.",
+                        "learned": false
+                    }
+                ]
+            },
+            "modern": {
+                "id": "modern",
+                "title": "Современная Россия",
+                "period": "1991-настоящее время",
+                "color": "gray",
+                "cards": [
+                    {
+                        "id": 1,
+                        "date": "1991 год",
+                        "event": "Распад СССР",
+                        "description": "Подписание Беловежских соглашений и создание Содружества Независимых Государств (СНГ). Конец советского периода.",
+                        "learned": false
+                    },
+                    {
+                        "id": 2,
+                        "date": "2000 год",
+                        "event": "Избрание Владимира Путина",
+                        "description": "Владимир Путин избран президентом Российской Федерации. Начало периода стабилизации после кризиса 1990-х годов.",
+                        "learned": false
+                    }
+                ]
+            }
+        };
+
+        // Application state
+        let currentState = {
+            currentPeriod: null,
+            currentCardIndex: 0,
+            learnedCards: JSON.parse(localStorage.getItem("learnedCards")) || {},
+            swipeStartX: 0,
+            swipeStartY: 0,
+            isSwiping: false
+        };
+
+        // DOM Elements
+        const mainMenu = document.getElementById("mainMenu");
+        const flashcardScreen = document.getElementById("flashcardScreen");
+        const periodCards = document.querySelectorAll(".period-card");
+        const backToMenuBtn = document.getElementById("backToMenu");
+        const periodTitle = document.getElementById("periodTitle");
+        const cardCounter = document.getElementById("cardCounter");
+        const progressPercent = document.getElementById("progressPercent");
+        const progressBar = document.getElementById("progressBar");
+        const flashcard = document.getElementById("flashcard");
+        const cardDate = document.getElementById("cardDate");
+        const cardEventTitle = document.getElementById("cardEventTitle");
+        const cardDescription = document.getElementById("cardDescription");
+        const markAsLearnedBtn = document.getElementById("markAsLearned");
+        const resetProgressBtn = document.getElementById("resetProgress");
+        const statsModal = document.getElementById("statsModal");
+        const closeStatsBtn = document.getElementById("closeStats");
+        const statsContent = document.getElementById("statsContent");
+        const resetAllProgressBtn = document.getElementById("resetAllProgress");
+
+        // Initialize the application
+        function initApp() {
+            // Load learned cards from localStorage
+            updateMainMenuStats();
+            
+            // Add event listeners for period selection
+            periodCards.forEach(card => {
+                card.addEventListener("click", function() {
+                    const periodId = this.getAttribute("data-period");
+                    startPeriod(periodId);
+                });
+            });
+            
+            // Add event listeners for navigation
+            backToMenuBtn.addEventListener("click", goBackToMenu);
+            
+            // Add event listener for card flip
+            flashcard.addEventListener("click", flipCard);
+            
+            // Add event listeners for card management
+            markAsLearnedBtn.addEventListener("click", toggleCardLearnedStatus);
+            resetProgressBtn.addEventListener("click", resetCurrentCardProgress);
+            
+            // Add event listeners for statistics
+            closeStatsBtn.addEventListener("click", () => {
+                statsModal.classList.add("hidden");
+            });
+            
+            resetAllProgressBtn.addEventListener("click", resetAllProgress);
+            
+            // Add touch events for swipe navigation
+            setupSwipeNavigation();
+            
+            // Close modal when clicking outside
+            statsModal.addEventListener("click", (e) => {
+                if (e.target === statsModal) {
+                    statsModal.classList.add("hidden");
+                }
+            });
+        }
+
+        // Start a period (show flashcards)
+        function startPeriod(periodId) {
+            currentState.currentPeriod = periodId;
+            currentState.currentCardIndex = 0;
+            
+            // Update UI
+            mainMenu.classList.add("hidden");
+            flashcardScreen.classList.remove("hidden");
+            
+            // Update period title
+            const period = historyPeriods[periodId];
+            periodTitle.textContent = period.title;
+            
+            // Show first card
+            showCurrentCard();
+        }
+
+        // Go back to main menu
+        function goBackToMenu() {
+            flashcardScreen.classList.add("hidden");
+            mainMenu.classList.remove("hidden");
+            updateMainMenuStats();
+        }
+
+        // Show current card based on state
+        function showCurrentCard() {
+            if (!currentState.currentPeriod) return;
+            
+            const period = historyPeriods[currentState.currentPeriod];
+            const card = period.cards[currentState.currentCardIndex];
+            
+            // Update card content
+            cardDate.textContent = card.date;
+            cardEventTitle.textContent = card.event;
+            cardDescription.textContent = card.description;
+            
+            // Update card counter
+            cardCounter.textContent = `Карточка ${currentState.currentCardIndex + 1} из ${period.cards.length}`;
+            
+            // Update progress
+            const learnedCount = getLearnedCardsCount(currentState.currentPeriod);
+            const progress = Math.round((learnedCount / period.cards.length) * 100);
+            progressPercent.textContent = `${progress}%`;
+            progressBar.style.width = `${progress}%`;
+            
+            // Update "Mark as learned" button
+            const cardKey = `${currentState.currentPeriod}-${card.id}`;
+            const isLearned = currentState.learnedCards[cardKey] || false;
+            updateMarkAsLearnedButton(isLearned);
+            
+            // Reset card to front side
+            flashcard.classList.remove("flipped");
+        }
+
+        // Show previous card
+        function showPreviousCard() {
+            if (currentState.currentCardIndex > 0) {
+                const period = historyPeriods[currentState.currentPeriod];
+                flashcard.classList.add("swipe-right");
+                
+                setTimeout(() => {
+                    currentState.currentCardIndex--;
+                    flashcard.classList.remove("swipe-right");
+                    flashcard.classList.add("swipe-right-in");
+                    showCurrentCard();
+                    
+                    setTimeout(() => {
+                        flashcard.classList.remove("swipe-right-in");
+                    }, 500);
+                }, 500);
+            }
+        }
+
+        // Show next card
+        function showNextCard() {
+            const period = historyPeriods[currentState.currentPeriod];
+            if (currentState.currentCardIndex < period.cards.length - 1) {
+                flashcard.classList.add("swipe-left");
+                
+                setTimeout(() => {
+                    currentState.currentCardIndex++;
+                    flashcard.classList.remove("swipe-left");
+                    flashcard.classList.add("swipe-left-in");
+                    showCurrentCard();
+                    
+                    setTimeout(() => {
+                        flashcard.classList.remove("swipe-left-in");
+                    }, 500);
+                }, 500);
+            }
+        }
+
+        // Flip the card
+        function flipCard() {
+            flashcard.classList.toggle("flipped");
+        }
+
+        // Toggle card learned status
+        function toggleCardLearnedStatus() {
+            const period = historyPeriods[currentState.currentPeriod];
+            const card = period.cards[currentState.currentCardIndex];
+            const cardKey = `${currentState.currentPeriod}-${card.id}`;
+            
+            // Toggle learned status
+            currentState.learnedCards[cardKey] = !currentState.learnedCards[cardKey];
+            
+            // Save to localStorage
+            localStorage.setItem("learnedCards", JSON.stringify(currentState.learnedCards));
+            
+            // Update UI
+            updateMarkAsLearnedButton(currentState.learnedCards[cardKey]);
+            showCurrentCard();
+            updateMainMenuStats();
+        }
+
+        // Update "Mark as learned" button
+        function updateMarkAsLearnedButton(isLearned) {
+            if (isLearned) {
+                markAsLearnedBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i>Выучено';
+                markAsLearnedBtn.classList.remove("bg-green-100", "text-green-800");
+                markAsLearnedBtn.classList.add("bg-green-500", "text-white");
+            } else {
+                markAsLearnedBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Выучено';
+                markAsLearnedBtn.classList.remove("bg-green-500", "text-white");
+                markAsLearnedBtn.classList.add("bg-green-100", "text-green-800");
+            }
+        }
+
+        // Reset progress for current period
+        function resetCurrentCardProgress() {
+            const period = historyPeriods[currentState.currentPeriod];
+            
+            // Remove all learned cards for this period
+            period.cards.forEach(card => {
+                const cardKey = `${currentState.currentPeriod}-${card.id}`;
+                delete currentState.learnedCards[cardKey];
+            });
+            
+            // Save to localStorage
+            localStorage.setItem("learnedCards", JSON.stringify(currentState.learnedCards));
+            
+            // Update UI
+            showCurrentCard();
+            updateMainMenuStats();
+        }
+
+        // Get count of learned cards for a period
+        function getLearnedCardsCount(periodId) {
+            const period = historyPeriods[periodId];
+            let count = 0;
+            
+            period.cards.forEach(card => {
+                const cardKey = `${periodId}-${card.id}`;
+                if (currentState.learnedCards[cardKey]) {
+                    count++;
+                }
+            });
+            
+            return count;
+        }
+
+        // Update main menu statistics
+        function updateMainMenuStats() {
+            let totalLearned = 0;
+            
+            Object.keys(historyPeriods).forEach(periodId => {
+                totalLearned += getLearnedCardsCount(periodId);
+            });
+            
+            // Update stats display
+            const statsBox = document.querySelector(".text-center .text-3xl.font-bold.text-primary");
+            if (statsBox) {
+                statsBox.textContent = totalLearned;
+            }
+        }
+
+        // Setup swipe navigation for cards
+        function setupSwipeNavigation() {
+            const container = document.getElementById("flashcardContainer");
+            let touchStartX = 0;
+            let touchStartY = 0;
+            let isAnimating = false;
+            
+            container.addEventListener("touchstart", (e) => {
+                if (isAnimating) return;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+            
+            container.addEventListener("touchmove", (e) => {
+                const deltaX = e.touches[0].clientX - touchStartX;
+                const deltaY = e.touches[0].clientY - touchStartY;
+                
+                // Only handle horizontal swipes (not vertical)
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    e.preventDefault();
+                }
+            });
+            
+            container.addEventListener("touchend", (e) => {
+                if (isAnimating) return;
+                
+                const deltaX = e.changedTouches[0].clientX - touchStartX;
+                const threshold = 50;
+                
+                if (Math.abs(deltaX) > threshold) {
+                    isAnimating = true;
+                    if (deltaX > 0) {
+                        // Swiped right - show previous card
+                        showPreviousCard();
+                    } else {
+                        // Swiped left - show next card
+                        showNextCard();
+                    }
+                    
+                    setTimeout(() => {
+                        isAnimating = false;
+                    }, 500);
+                }
+            });
+        }
+
+        // Reset all progress
+        function resetAllProgress() {
+            if (confirm("Вы уверены? Это удалит всю историю обучения.")) {
+                currentState.learnedCards = {};
+                localStorage.removeItem("learnedCards");
+                updateMainMenuStats();
+                if (currentState.currentPeriod) {
+                    showCurrentCard();
+                }
+                statsModal.classList.add("hidden");
+            }
+        }
+
+        // Initialize the application when DOM is ready
+        document.addEventListener("DOMContentLoaded", initApp);
+    </script>
+</body>
+</html>
